@@ -42,6 +42,7 @@
 		var yAxis;
 		var line;
 		var transaction;
+		var newx, newy;
 
 		function display_money () {
 			myrect = svg.append("rect")
@@ -49,8 +50,8 @@
 					.attr("height", 30)
 					.attr("width",50)
 					.attr("fill", "blue")
-					.attr("x", 340)
-					.attr("y", 205)
+					.attr("x", newx)
+					.attr("y", newy)
 					.attr("id","rect1");
 			if (status == 0) {
 				d3.selectAll(".ro").remove();
@@ -150,7 +151,8 @@
 					.attr("class", "line")
 					.attr("d", function(d) { return line(d.values); })
 					.style("stroke", function(d) { return color(d.name); });
-					 
+				newx = 3/ndays*width-50;
+				newy = height-yyy/maxy*height-30;
 				svg.append("rect")
 					.attr("height", 20)
 					.attr("width",20)
@@ -172,18 +174,23 @@
 				d3.select(window).on('resize', resize);
 			
 			 
-			function resize() {
+			
+		});
+	}
+	function resize() {
 				// update width and height
 
 				width = document.documentElement.clientWidth - margin.left - margin.right;
 				height = document.documentElement.clientHeight - margin.top - margin.bottom;
 				
+				// Erase old chart
+				
+				d3.select("svg").remove();
+			
 				// Redraw chart
 				
 				load_chart();
 			  
-			}
-		});
 	}
 	</script>
 <body onload = "load_chart()">
