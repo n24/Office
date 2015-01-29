@@ -1,0 +1,6 @@
+{"transactions":
+	[
+		{"date": "20150101", "money": 100000, "type": "w"},
+		{"date": "20150102", "money": 200000, "type": "d"}
+	]
+}	

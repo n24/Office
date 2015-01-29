@@ -49,6 +49,11 @@
 		var count;
 		var no_of_ticks_x = width/100;
 		var no_of_ticks_y = height/50;
+		var json_data;
+		var json_transactions;
+		var ndays;
+		var transactions;
+		var maxy;
 
 		function display_money () {
 			myrect = svg.append("rect")
@@ -66,103 +71,134 @@
 		}
 		
 		function load_chart () {
-			parseDate = d3.time.format("%Y%m%d")
-						.parse;
-
-			x = d3.time.scale()
-				.range([0, width]);
-
-			y = d3.scale.linear()
-				.range([height,0]);
-
-			color = d3.scale.category10();
+			var fdate, ldate,flag = 0;	
+			count = 0;
+			var yyy;
 			
-			
-			xAxis = d3.svg.axis()
-					.scale(x)
-					.orient("bottom")
-					.ticks(no_of_ticks_x);
+			$(document).ready(function(){
+				parseDate = d3.time.format("%Y%m%d")
+							.parse;
 
-			yAxis = d3.svg.axis()
-					.scale(y)
-					.orient("left")
-					.ticks(no_of_ticks_y);
+				x = d3.time.scale()
+					.range([0, width]);
 
-			line = 	d3.svg.line()
-					.interpolate("basis")
-					.x(function(d) { return x(d.date); })
-					.y(function(d) { return y(d.money); });
+				y = d3.scale.linear()
+					.range([height,0]);
+
+				color = d3.scale.category10();
 				
-			svg = 	d3.select("body").append("svg")
-					.attr("width", width + margin.left + margin.right)
-					.attr("height", height + margin.top + margin.bottom)
-					.append("g")
-					.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				xAxis = d3.svg.axis()
+						.scale(x)
+						.orient("bottom")
+						.ticks(no_of_ticks_x);
 
-			d3.tsv("data.txt", function(error, data) {
-				color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
+				yAxis = d3.svg.axis()
+						.scale(y)
+						.orient("left")
+						.ticks(no_of_ticks_y);
 
-				var gvndate = "20150106";
-				var yyy;
-
-				var fdate, ldate,flag = 0;
+				line = 	d3.svg.line()
+						.interpolate("basis")
+						.x(function(d) { return x(d.date); })
+						.y(function(d) { return y(d.money); });
+					
+				svg = 	d3.select("body").append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.top + margin.bottom)
+						.append("g")
+						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 				 
-				count = 0;
-				data.forEach(function(d) {
-					count++;
-					if (d.date == gvndate) {
-						yyy = d.money1;
-						day = count;
-					}
-					d.date =  parseDate(d.date);
-					ldate = d.date;
-					if (!flag) {
-						fdate = ldate;
-						flag = 1;
-					}
-				});
+				$.ajax({
+                    url: "data.txt",
+                    dataType: "text",
+                    success: function(data) {
+                        json_data = $.parseJSON(data);
+						fdate = json_data.data[0].date;
+						ldate = json_data.data[json_data.data.length - 1].date;
+						fdate = parseDate(fdate);
+						ldate = parseDate(ldate);
+						ndays = ((ldate - fdate) / 1000 / 3600 / 24)+1;
+						maxy = 0;
+						for ( var i = 0; i < json_data.data.length; i++) {
+							json_data.data[i].date = parseDate(json_data.data[i].date);
+							if (json_data.data[i].money > maxy)
+								maxy = json_data.data[i].money;
+						}
+							color.domain(["date","money"]);
+							transactions = color.domain().map(function(name) {
+								return {
+									name: name,
+									values: json_data.data.map(function(d) {
+												return {date: d.date, money: +d[name]};
+												alert(d.date);
+											})
+								};
+							});
+							x.domain(d3.extent(json_data.data, function(d) { return d.date; }));
+							y.domain(d3.extent(json_data.data, function(d) { return d.money; }));
+							/*y.domain([
+								d3.min(transactions, function(c) { return d3.min(c.values, function(v) { return v.money; }); }),
+								maxy = d3.max(transactions, function(c) { return d3.max(c.values, function(v) { return v.money; }); })
+							]);*/
+							
+							svg.append("g")
+								.attr("class", "x axis")
+								.attr("transform", "translate(0," + height + ")")
+								.call(xAxis);
+
+							svg.append("g")
+								.attr("class", "y axis")
+								.call(yAxis)
+								.append("text")
+								.attr("transform", "rotate(-90)")
+								.attr("y", 6)
+								.attr("dy", ".71em")
+								.style("text-anchor", "end")
+								.text("Investment");
+
+							transaction = 	svg.selectAll(".transactions")
+											.data(transactions)
+											.enter().append("g")
+											.attr("class", "transactions");
+							
+							transaction.append("path")
+								.attr("class", "line")
+								.attr("d", function(d){return line(d.values);})
+								.style("stroke",function(d){return color(d.name);});
+							
+							transaction.append("text")
+								.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+								.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
+								.attr("x", ".3em")
+								.attr("dy", ".35em")
+								.text(function(d) { return d.name; });
+						}		
+					
+                });
+				
+				$.ajax({
+                    url: "transactions.txt",
+                    //force to handle it as text
+                    dataType: "text",
+                    success: function(data) {
+                        json_transactions = $.parseJSON(data);
+                    }
+                });
+			});
+			
+			
+
+				
+
+				
+				 
+				
+			
 				  
-				var ndays = ((ldate - fdate) / 1000 / 3600 / 24)+1;
-				var transactions = color.domain().map(function(name) {
-					return {
-					  name: name,
-					  values: data.map(function(d) {
-						return {date: d.date, money: +d[name]};
-					  })
-					};
-				});
+				/*
 
-				x.domain(d3.extent(data, function(d) { return d.date; }));
-				var maxy;
-				  y.domain([
-					d3.min(transactions, function(c) { return d3.min(c.values, function(v) { return v.money; }); }),
-					maxy = d3.max(transactions, function(c) { return d3.max(c.values, function(v) { return v.money; }); })
-				  ]);
-
-				svg.append("g")
-					.attr("class", "x axis")
-					.attr("transform", "translate(0," + height + ")")
-					.call(xAxis);
-
-				svg.append("g")
-					.attr("class", "y axis")
-					.call(yAxis)
-					.append("text")
-					.attr("transform", "rotate(-90)")
-					.attr("y", 6)
-					.attr("dy", ".71em")
-					.style("text-anchor", "end")
-					.text("Investment");
-
-				transaction = 	svg.selectAll(".transactions")
-								.data(transactions)
-								.enter().append("g")
-								.attr("class", "transactions");
-
-				transaction.append("path")
-					.attr("class", "line")
-					.attr("d", function(d) { return line(d.values); })
-					.style("stroke", function(d) { return color(d.name); });
+				
+				
 				newx = day/ndays*width-50;
 				newy = height-yyy/maxy*height-30;
 				svg.append("rect")
@@ -174,19 +210,15 @@
 					.attr("x", day/ndays*width)
 					.attr("y", height-yyy/maxy*height);
 						
-				transaction.append("text")
-					.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-					.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
-					.attr("x", ".3em")
-					.attr("dy", ".35em")
-					.text(function(d) { return d.name; });
-
-				// resize
+				
+				
+				
+			
+		});*/
+	}
+	// resize
 
 				d3.select(window).on('resize', resize);
-			
-		});
-	}
 	function resize() {
 				// update width and height
 
