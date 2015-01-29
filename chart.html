@@ -6,6 +6,7 @@
 
 		body {
 		  font: 14px sans-serif;
+		  
 		}
 
 		.axis path,
@@ -27,8 +28,9 @@
 
 	</style>
 	<script src="http://d3js.org/d3.v3.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script>
-		var margin = {top: 120, right: 80, bottom: 30, left: 100};
+		var margin = {top: 120, right: 120, bottom: 80, left: 100};
 		var width = document.documentElement.clientWidth - margin.left - margin.right;
 		var height = document.documentElement.clientHeight - margin.top - margin.bottom;
 		var status = 1;
@@ -43,6 +45,10 @@
 		var line;
 		var transaction;
 		var newx, newy;
+		var day;
+		var count;
+		var no_of_ticks_x = width/100;
+		var no_of_ticks_y = height/50;
 
 		function display_money () {
 			myrect = svg.append("rect")
@@ -70,14 +76,17 @@
 				.range([height,0]);
 
 			color = d3.scale.category10();
-
+			
+			
 			xAxis = d3.svg.axis()
 					.scale(x)
-					.orient("bottom");
+					.orient("bottom")
+					.ticks(no_of_ticks_x);
 
 			yAxis = d3.svg.axis()
 					.scale(y)
-					.orient("left");
+					.orient("left")
+					.ticks(no_of_ticks_y);
 
 			line = 	d3.svg.line()
 					.interpolate("basis")
@@ -93,14 +102,17 @@
 			d3.tsv("data.txt", function(error, data) {
 				color.domain(d3.keys(data[0]).filter(function(key) { return key !== "date"; }));
 
-				var gvndate = "20150103";
+				var gvndate = "20150106";
 				var yyy;
 
 				var fdate, ldate,flag = 0;
-				  
+				 
+				count = 0;
 				data.forEach(function(d) {
+					count++;
 					if (d.date == gvndate) {
-						yyy = d.money;
+						yyy = d.money1;
+						day = count;
 					}
 					d.date =  parseDate(d.date);
 					ldate = d.date;
@@ -151,7 +163,7 @@
 					.attr("class", "line")
 					.attr("d", function(d) { return line(d.values); })
 					.style("stroke", function(d) { return color(d.name); });
-				newx = 3/ndays*width-50;
+				newx = day/ndays*width-50;
 				newy = height-yyy/maxy*height-30;
 				svg.append("rect")
 					.attr("height", 20)
@@ -159,21 +171,19 @@
 					.attr("fill", "red")
 					.attr("id","r1")
 					.attr("onclick","display_money()")
-					.attr("x", 3/ndays*width)
+					.attr("x", day/ndays*width)
 					.attr("y", height-yyy/maxy*height);
 						
 				transaction.append("text")
 					.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
 					.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
-					.attr("x", 3)
+					.attr("x", ".3em")
 					.attr("dy", ".35em")
 					.text(function(d) { return d.name; });
 
 				// resize
 
 				d3.select(window).on('resize', resize);
-			
-			 
 			
 		});
 	}
@@ -182,6 +192,8 @@
 
 				width = document.documentElement.clientWidth - margin.left - margin.right;
 				height = document.documentElement.clientHeight - margin.top - margin.bottom;
+				no_of_ticks_x = width/100;
+				no_of_ticks_y = height/50;
 				
 				// Erase old chart
 				
