@@ -1,10 +1,6 @@
 {"transactions":
 	[
-		{"date": "20150101", "money": 100000, "type": "w"},
-		{"date": "20150102", "money": 200000, "type": "d"},
-		{"date": "20150109", "money": 100000, "type": "w"},
-		{"date": "20150104", "money": 200000, "type": "d"},
-		{"date": "20150108", "money": 100000, "type": "w"},
-		{"date": "20150106", "money": 200000, "type": "d"}
-	]
+		{"date": "20150101", "money": 200000, "type": "d"},
+		{"date": "20150113", "money": 500000, "type": "d"},
+		{"date": "20150120", "money": 500000, "type": "w"}	]
 }	
