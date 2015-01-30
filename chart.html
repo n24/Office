@@ -3,7 +3,6 @@
 <head>
 	<title> Responsive Chart </title>
 	<style>
-
 		body {
 		  font: 14px sans-serif;
 		  
@@ -25,15 +24,17 @@
 		  stroke: steelblue;
 		  stroke-width: 1.5px;
 		}
-
 	</style>
+	
 	<script src="http://d3js.org/d3.v3.js"></script>
+	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	
 	<script>
 		var margin = {top: 120, right: 120, bottom: 80, left: 100};
 		var width = document.documentElement.clientWidth - margin.left - margin.right;
 		var height = document.documentElement.clientHeight - margin.top - margin.bottom;
-		var status = 1;
+		var status = [];
 		var myrect;
 		var svg;
 		var parseDate;
@@ -55,20 +56,40 @@
 		var ndays;
 		var transactions;
 		var maxy;
+		var nc = 0;
+		var my_data = [];
 
-		function display_money () {
-			myrect = svg.append("rect")
+		function display_money (p_id) {
+			var num = p_id.match(/\d+/g);
+			num = Number(num);
+			var my_id = "rect" + num;
+			var my_x;
+			var my_y;
+			var my_s;
+			var i;
+			for ( i = 0; i < nc; i++) {
+				if (p_id == my_data[i].id) {
+					my_x = my_data[i].x - 50;
+					my_y = my_data[i].y - 30;
+					my_s = my_data[i].s;
+					break;
+				}
+			}
+			
+			if (my_s == 0) {
+				d3.select("#"+my_id).remove();
+				my_data[i].s = 1;
+			} else {
+				my_data[i].s = 0;
+				myrect = svg.append("rect")
 					.attr("class","ro")
 					.attr("height", 30)
 					.attr("width",50)
 					.attr("fill", "blue")
-					.attr("x", newx)
-					.attr("y", newy)
-					.attr("id","rect1");
-			if (status == 0) {
-				d3.selectAll(".ro").remove();
-				status = 1;
-			} else status = 0;
+					.attr("x", my_x)
+					.attr("y", my_y)
+					.attr("id",my_id);
+			}
 		}
 		
 		function load_chart () {
@@ -108,7 +129,8 @@
 						.attr("height", height + margin.top + margin.bottom)
 						.append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-				 
+				
+				// Load and parse data
 				$.ajax({
                     url: "data.txt",
                     dataType: "text",
@@ -119,7 +141,7 @@
 						ldate = json_data.data[json_data.data.length - 1].date;
 						fdate = parseDate(fdate);
 						ldate = parseDate(ldate);
-						ndays = ((ldate - fdate) / 1000 / 3600 / 24)+1;
+						ndays = ((ldate - fdate) / 1000 / 3600 / 24) + 1;
 						maxy = 0;
 						for ( var i = 0; i < json_data.data.length; i++) {
 							json_data.data[i].date = parseDate(json_data.data[i].date);
@@ -132,7 +154,6 @@
 								name: name,
 								values: json_data.data.map(function(d) {
 											return {date: d.date, money: +d[name]};
-											alert(d.date);
 										})
 							};
 						});
@@ -174,6 +195,7 @@
 					}		
                 });
 				
+				// Load and parse transactions
 				$.ajax({
                     url: "transactions.txt",
                     dataType: "text",
@@ -191,43 +213,45 @@
 									break;
 								}
 							}
-							newx = day/ndays*width-50;
-							newy = height-yyy/maxy*height-30;
+							
+							newx = day/ndays*width;
+							newy = height-yyy/maxy*height;
+							my_id = "r" + nc;
+							my_data[nc] = { id:my_id,x:newx,y:newy,s:1};
+							nc++;
+	
 							svg.append("rect")
 								.attr("height", 20)
 								.attr("width",20)
 								.attr("fill", color)
-								.attr("id","r1")
-								.attr("onclick","display_money()")
-								.attr("x", day/ndays*width)
-								.attr("y", height-yyy/maxy*height);
-						}
-						
+								.attr("id",my_id)
+								.attr("onclick","display_money(this.id)")
+								.attr("x", newx)
+								.attr("y", newy);
+						}		
                     }
                 });
 			});
-	}
-	// resize
-
-	d3.select(window).on('resize', resize);
-	
-	function resize() {
-				// update width and height
-
-				width = document.documentElement.clientWidth - margin.left - margin.right;
-				height = document.documentElement.clientHeight - margin.top - margin.bottom;
-				no_of_ticks_x = width/100;
-				no_of_ticks_y = height/50;
-				
-				// Erase old chart
-				
-				d3.select("svg").remove();
+		}
+		
+		// resize
+		d3.select(window).on('resize', resize);
+		
+		function resize() {
+			// update width and height
+			width = document.documentElement.clientWidth - margin.left - margin.right;
+			height = document.documentElement.clientHeight - margin.top - margin.bottom;
+			no_of_ticks_x = width/100;
+			no_of_ticks_y = height/50;
 			
-				// Redraw chart
-				
-				load_chart();
-			  
-	}
+			// Erase old chart
+			d3.select("svg").remove();
+
+			// Redraw chart			
+			load_chart();
+		}
 	</script>
+
 <body onload = "load_chart()">
+
 </body>
