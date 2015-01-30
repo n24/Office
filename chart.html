@@ -31,71 +31,63 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	
 	<script>
-		var margin = {top: 120, right: 120, bottom: 80, left: 100};
-		var width = document.documentElement.clientWidth - margin.left - margin.right;
-		var height = document.documentElement.clientHeight - margin.top - margin.bottom;
-		var status = [];
-		var myrect;
+		var margin 		= {top: 120, right: 120, bottom: 80, left: 100};
+		var page_width 	= document.documentElement.clientWidth;
+		var page_height = document.documentElement.clientHeight;
+		var width 		= page_width - margin.left - margin.right;
+		var height 		= page_height - margin.top - margin.bottom;
 		var svg;
-		var parseDate;
-		var x;
-		var y;
-		var color;
-		var xAxis;
-		var yAxis;
-		var line;
-		var transaction;
-		var newx, newy;
-		var day;
-		var count;
-		var no_of_ticks_x = width/100;
-		var no_of_ticks_y = height/50;
-		var json_data;
-		var json_data_c;
-		var json_transactions;
-		var ndays = 0;
-		var transactions;
-		var maxy;
-		var nc = 0;
-		var my_data = [];
+		var no_of_ticks_x = width  / 100;
+		var no_of_ticks_y = height / 50;
+		var rect_data = [];
 
 		function display_money (p_id) {
-			var num = p_id.match(/\d+/g);
-			num = Number(num);
-			var my_id = "rect" + num;
-			var my_x;
-			var my_y;
-			var my_s;
-			var i;
-			for ( i = 0; i < nc; i++) {
-				if (p_id == my_data[i].id) {
-					my_x = my_data[i].x - 50;
-					my_y = my_data[i].y - 30;
-					my_s = my_data[i].s;
+			var num = Number (p_id.match(/\d+/g));
+			var rect_id = "rect" + num;
+			var rect_pos_x;
+			var rect_pos_y;
+			var rect_status;
+			var index;
+			for ( index = 0; index < rect_data.length; index++) {
+				if (p_id == rect_data[index].id) {
+					rect_pos_x = rect_data[index].x - 50;
+					rect_pos_y = rect_data[index].y - 30;
+					rect_status = rect_data[index].s;
 					break;
 				}
 			}
-			
-			if (my_s == 0) {
-				d3.select("#"+my_id).remove();
-				my_data[i].s = 1;
+			if (rect_status == 0) {
+				d3.select("#"+rect_id).remove();
+				rect_data[index].s = 1;
 			} else {
-				my_data[i].s = 0;
-				myrect = svg.append("rect")
+				rect_data[index].s = 0;
+				var myrect = svg.append("rect")
 					.attr("class","ro")
 					.attr("height", 30)
 					.attr("width",50)
 					.attr("fill", "blue")
-					.attr("x", my_x)
-					.attr("y", my_y)
-					.attr("id",my_id);
+					.attr("x", rect_pos_x)
+					.attr("y", rect_pos_y)
+					.attr("id",rect_id);
 			}
 		}
 		
 		function load_chart () {
-			var fdate, ldate,flag = 0;	
-			count = 0;
-			var yyy;
+			var parseDate;
+			var x, y;
+			var color;
+			var xAxis, yAxis;
+			var line;
+			var json_data;
+			var json_data_c;
+			var json_transactions;
+			var ndays;
+			var max_money;
+			var transactions, transaction;
+			var color_rect;
+			var day;
+			var money_on_date;
+			var rect_data_i = 0;
 			
 			$(document).ready(function(){
 				parseDate = d3.time.format("%Y%m%d")
@@ -137,16 +129,12 @@
                     success: function(data) {
                         json_data = $.parseJSON(data);
 						json_data_c = $.parseJSON(data);
-						fdate = json_data.data[0].date;
-						ldate = json_data.data[json_data.data.length - 1].date;
-						fdate = parseDate(fdate);
-						ldate = parseDate(ldate);
-						//ndays = ((ldate - fdate) / 1000 / 3600 / 24) + 1;
-						maxy = 0;
-						for ( var i = 0; i < json_data.data.length; i++) {
-							json_data.data[i].date = parseDate(json_data.data[i].date);
-							if (json_data.data[i].money > maxy)
-								maxy = json_data.data[i].money;
+						max_money = 0;
+						ndays = 0;
+						for ( var index = 0; index < json_data.data.length; index++) {
+							json_data.data[index].date = parseDate(json_data.data[index].date);
+							if (json_data.data[index].money > max_money)
+								max_money = json_data.data[index].money;
 							ndays++;
 						}
 						color.domain(["date","money"]);
@@ -161,11 +149,6 @@
 						
 						x.domain(d3.extent(json_data.data, function(d) { return d.date; }));
 						y.domain(d3.extent(json_data.data, function(d) { return d.money; }));
-						//y.domain([
-							//d3.min(transactions, function(c) { return d3.min(c.values, function(v) { return v.money; }); }),
-							//d3.max(transactions, function(c) { return d3.max(c.values, function(v) { return v.money; }); })
-						//]);
-						//y.domain([200000,700000]);
 						
 						svg.append("g")
 							.attr("class", "x axis")
@@ -182,22 +165,22 @@
 							.style("text-anchor", "end")
 							.text("Investment");
 
-							transaction = 	svg.selectAll(".transactions")
-											.data(transactions)
-											.enter().append("g")
-											.attr("class", "transactions");
+						transaction = 	svg.selectAll(".transactions")
+										.data(transactions)
+										.enter().append("g")
+										.attr("class", "transactions");
 							
-							transaction.append("path")
-								.attr("class", "line")
-								.attr("d", function(d){return line(d.values);})
-								.style("stroke",function(d){return color(d.name);});
+						transaction.append("path")
+							.attr("class", "line")
+							.attr("d", function(d){return line(d.values);})
+							.style("stroke",function(d){return color(d.name);});
 							
-							transaction.append("text")
-								.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-								.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
-								.attr("x", ".3em")
-								.attr("dy", ".35em")
-								.text(function(d) { return d.name; });
+						transaction.append("text")
+							.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+							.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
+							.attr("x", ".3em")
+							.attr("dy", ".35em")
+							.text(function(d) { return d.name; });
 					}		
                 });
 				
@@ -206,37 +189,32 @@
                     url: "transactions.txt",
                     dataType: "text",
                     success: function(data) {
-						var color;
                         json_transactions = $.parseJSON(data);
 						for (var i = 0; i < json_transactions.transactions.length; i++) {
 							day = 0;
 							for (var j = 0; j < json_data_c.data.length; j++) {
 								day++;
 								if (json_data_c.data[j].date == json_transactions.transactions[i].date) {
-									yyy = json_data_c.data[j].money;
-									if (json_transactions.transactions[i].type == "w") color = "red";
-									else color = "green";
+									money_on_date = json_data_c.data[j].money;
+									if (json_transactions.transactions[i].type == "w") color_rect = "red";
+									else color_rect = "green";
 									break;
 								}
 							}
 							
-							newx = day/ndays*width;
-							newy = height-yyy/maxy*height;
-							alert( day + " " + yyy);
-							alert( width + " " + height);
-							alert(ndays);
-							my_id = "r" + nc;
-							my_data[nc] = { id:my_id,x:newx,y:newy,s:1};
-							nc++;
+							rect_pos_x = day / ndays * width;
+							rect_pos_y = height - money_on_date / max_money * height;
+							rect_id = "r" + rect_data_i;
+							rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
 	
 							svg.append("rect")
 								.attr("height", 20)
 								.attr("width",20)
-								.attr("fill", color)
-								.attr("id",my_id)
+								.attr("fill", color_rect)
+								.attr("id",rect_id)
 								.attr("onclick","display_money(this.id)")
-								.attr("x", newx)
-								.attr("y", newy);
+								.attr("x", rect_pos_x)
+								.attr("y", rect_pos_y);
 						}		
                     }
                 });
@@ -248,11 +226,10 @@
 		
 		function resize() {
 			// update width and height
-			width = document.documentElement.clientWidth - margin.left - margin.right;
-			height = document.documentElement.clientHeight - margin.top - margin.bottom;
-			no_of_ticks_x = width/100;
-			no_of_ticks_y = height/50;
-			ndays = 0;
+			width 	= document.documentElement.clientWidth - margin.left - margin.right;
+			height 	= document.documentElement.clientHeight - margin.top - margin.bottom;
+			no_of_ticks_x = width / 100;
+			no_of_ticks_y = height / 50;
 			
 			// Erase old chart
 			d3.select("svg").remove();
