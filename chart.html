@@ -30,6 +30,8 @@
 	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	
+	<script src ="set_data.js"></script>
+	
 	<script>
 		var margin 		= {top: 120, right: 120, bottom: 80, left: 100};
 		var page_width 	= document.documentElement.clientWidth;
@@ -73,14 +75,13 @@
 		}
 		
 		function load_chart () {
+			alert ("in load");
 			var parseDate;
 			var x, y;
 			var color;
 			var xAxis, yAxis;
 			var line;
-			var json_data;
-			var json_data_c;
-			var json_transactions;
+			var json_data_c = [];
 			var ndays;
 			var max_money;
 			var transactions, transaction;
@@ -92,7 +93,7 @@
 			$(document).ready(function(){
 				parseDate = d3.time.format("%Y%m%d")
 							.parse;
-
+				alert(json_data[0].date);
 				x = d3.time.scale()
 					.range([0, width]);
 
@@ -121,103 +122,90 @@
 						.attr("height", height + margin.top + margin.bottom)
 						.append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-				
-				// Load and parse data
-				$.ajax({
-                    url: "data.txt",
-                    dataType: "text",
-                    success: function(data) {
-                        json_data = $.parseJSON(data);
-						json_data_c = $.parseJSON(data);
-						max_money = 0;
-						ndays = 0;
-						for ( var index = 0; index < json_data.data.length; index++) {
-							json_data.data[index].date = parseDate(json_data.data[index].date);
-							if (json_data.data[index].money > max_money)
-								max_money = json_data.data[index].money;
-							ndays++;
-						}
-						color.domain(["date","money"]);
-						transactions = color.domain().map(function(name) {
-							return {
-								name: name,
-								values: json_data.data.map(function(d) {
+
+				max_money = 0;
+				ndays = 0;
+				for ( var index = 0; index < json_data.length; index++) {
+					json_data_c[index] = {
+						"date":json_data[index].date,
+						"money":json_data[index].money
+					};
+					json_data[index].date = parseDate(json_data[index].date);
+					if (json_data[index].money > max_money)
+						max_money = json_data[index].money;
+					ndays++;
+				}
+				color.domain(["date","money"]);
+				transactions = color.domain().map(function(name) {
+									return {
+										name: name,
+										values: json_data.map(function(d) {
 											return {date: d.date, money: +d[name]};
 										})
-							};
-						});
+									};
+								});
 						
-						x.domain(d3.extent(json_data.data, function(d) { return d.date; }));
-						y.domain(d3.extent(json_data.data, function(d) { return d.money; }));
+				x.domain(d3.extent(json_data, function(d) { return d.date; }));
+				y.domain(d3.extent(json_data, function(d) { return d.money; }));
 						
-						svg.append("g")
-							.attr("class", "x axis")
-							.attr("transform", "translate(0," + height + ")")
-							.call(xAxis);
+				svg.append("g")
+					.attr("class", "x axis")
+					.attr("transform", "translate(0," + height + ")")
+					.call(xAxis);
 
-						svg.append("g")
-							.attr("class", "y axis")
-							.call(yAxis)
-							.append("text")
-							.attr("transform", "rotate(-90)")
-							.attr("y", 6)
-							.attr("dy", ".71em")
-							.style("text-anchor", "end")
-							.text("Investment");
+				svg.append("g")
+					.attr("class", "y axis")
+					.call(yAxis)
+					.append("text")
+					.attr("transform", "rotate(-90)")
+					.attr("y", 6)
+					.attr("dy", ".71em")
+					.style("text-anchor", "end")
+					.text("Investment");
 
-						transaction = 	svg.selectAll(".transactions")
-										.data(transactions)
-										.enter().append("g")
-										.attr("class", "transactions");
+				transaction = 	svg.selectAll(".transactions")
+									.data(transactions)
+									.enter().append("g")
+									.attr("class", "transactions");
 							
-						transaction.append("path")
-							.attr("class", "line")
-							.attr("d", function(d){return line(d.values);})
-							.style("stroke",function(d){return color(d.name);});
+				transaction.append("path")
+					.attr("class", "line")
+					.attr("d", function(d){return line(d.values);})
+					.style("stroke",function(d){return color(d.name);});
 							
-						transaction.append("text")
-							.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-							.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
-							.attr("x", ".3em")
-							.attr("dy", ".35em")
-							.text(function(d) { return d.name; });
-					}		
-                });
+				transaction.append("text")
+					.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+					.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
+					.attr("x", ".3em")
+					.attr("dy", ".35em")
+					.text(function(d) { return d.name; });		
 				
-				// Load and parse transactions
-				$.ajax({
-                    url: "transactions.txt",
-                    dataType: "text",
-                    success: function(data) {
-                        json_transactions = $.parseJSON(data);
-						for (var i = 0; i < json_transactions.transactions.length; i++) {
-							day = 0;
-							for (var j = 0; j < json_data_c.data.length; j++) {
-								day++;
-								if (json_data_c.data[j].date == json_transactions.transactions[i].date) {
-									money_on_date = json_data_c.data[j].money;
-									if (json_transactions.transactions[i].type == "w") color_rect = "red";
-									else color_rect = "green";
-									break;
-								}
-							}
+				for (var i = 0; i < json_transactions.length; i++) {
+					day = 0;
+					for (var j = 0; j < json_data_c.length; j++) {
+						day++;
+						if (json_data_c[j].date == json_transactions[i].date) {
+							money_on_date = json_data_c[j].money;
+							if (json_transactions[i].type == "w") color_rect = "red";
+							else color_rect = "green";
+							break;
+						}
+					}
 							
-							rect_pos_x = day / ndays * width;
-							rect_pos_y = height - money_on_date / max_money * height;
-							rect_id = "r" + rect_data_i;
-							rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
+					rect_pos_x = day / ndays * width;
+					rect_pos_y = height - money_on_date / max_money * height;
+					rect_id = "r" + rect_data_i;
+					rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
 	
-							svg.append("rect")
-								.attr("height", 20)
-								.attr("width",20)
-								.attr("fill", color_rect)
-								.attr("id",rect_id)
-								.attr("onclick","display_money(this.id)")
-								.attr("x", rect_pos_x)
-								.attr("y", rect_pos_y);
-						}		
-                    }
-                });
+					svg.append("rect")
+						.attr("height", 20)
+						.attr("width",20)
+						.attr("fill", color_rect)
+						.attr("id",rect_id)
+						.attr("onclick","display_money(this.id)")
+						.attr("x", rect_pos_x)
+						.attr("y", rect_pos_y);
+					}		
 			});
 		}
 		
@@ -240,5 +228,4 @@
 	</script>
 
 <body onload = "load_chart()">
-
 </body>

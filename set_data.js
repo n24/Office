@@ -10,15 +10,14 @@ function set_transactions ( data ) {
 			"type":data[index][2]
 		};
 	}
-
+	
 }
 
 function set_data ( data ) {
 	for ( var index = 0; index < data.length; index++ ) {
-		json_transactions[index] = {
+		json_data[index] = {
 			"date":data[index][0],
 			"money":data[index][1]
 		};
 	}
-
 }

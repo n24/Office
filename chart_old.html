@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+	<title> Responsive Chart </title>
+	<style>
+		body {
+		  font: 14px sans-serif;
+		  
+		}
+
+		.axis path,
+		.axis line {
+		  fill: none;
+		  stroke: #000;
+		  shape-rendering: crispEdges;
+		}
+
+		.x.axis path {
+		  display: black;
+		}
+
+		.line {
+		  fill: none;
+		  stroke: steelblue;
+		  stroke-width: 1.5px;
+		}
+	</style>
+	
+	<script src="http://d3js.org/d3.v3.js"></script>
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	
+	<script>
+		var margin = {top: 120, right: 120, bottom: 80, left: 100};
+		var width = document.documentElement.clientWidth - margin.left - margin.right;
+		var height = document.documentElement.clientHeight - margin.top - margin.bottom;
+		var status = [];
+		var myrect;
+		var svg;
+		var parseDate;
+		var x;
+		var y;
+		var color;
+		var xAxis;
+		var yAxis;
+		var line;
+		var transaction;
+		var newx, newy;
+		var day;
+		var count;
+		var no_of_ticks_x = width/100;
+		var no_of_ticks_y = height/50;
+		var json_data;
+		var json_data_c;
+		var json_transactions;
+		var ndays = 0;
+		var transactions;
+		var maxy;
+		var nc = 0;
+		var my_data = [];
+
+		function display_money (p_id) {
+			var num = p_id.match(/\d+/g);
+			num = Number(num);
+			var my_id = "rect" + num;
+			var my_x;
+			var my_y;
+			var my_s;
+			var i;
+			for ( i = 0; i < nc; i++) {
+				if (p_id == my_data[i].id) {
+					my_x = my_data[i].x - 50;
+					my_y = my_data[i].y - 30;
+					my_s = my_data[i].s;
+					break;
+				}
+			}
+			
+			if (my_s == 0) {
+				d3.select("#"+my_id).remove();
+				my_data[i].s = 1;
+			} else {
+				my_data[i].s = 0;
+				myrect = svg.append("rect")
+					.attr("class","ro")
+					.attr("height", 30)
+					.attr("width",50)
+					.attr("fill", "blue")
+					.attr("x", my_x)
+					.attr("y", my_y)
+					.attr("id",my_id);
+			}
+		}
+		
+		function load_chart () {
+			var fdate, ldate,flag = 0;	
+			count = 0;
+			var yyy;
+			
+			$(document).ready(function(){
+				parseDate = d3.time.format("%Y%m%d")
+							.parse;
+
+				x = d3.time.scale()
+					.range([0, width]);
+
+				y = d3.scale.linear()
+					.range([height,0]);
+
+				color = d3.scale.category10();
+				
+				xAxis = d3.svg.axis()
+						.scale(x)
+						.orient("bottom")
+						.ticks(no_of_ticks_x);
+
+				yAxis = d3.svg.axis()
+						.scale(y)
+						.orient("left")
+						.ticks(no_of_ticks_y);
+
+				line = 	d3.svg.line()
+						.interpolate("basis")
+						.x(function(d) { return x(d.date); })
+						.y(function(d) { return y(d.money); });
+					
+				svg = 	d3.select("body").append("svg")
+						.attr("width", width + margin.left + margin.right)
+						.attr("height", height + margin.top + margin.bottom)
+						.append("g")
+						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+				
+				// Load and parse data
+				$.ajax({
+                    url: "data.txt",
+                    dataType: "text",
+                    success: function(data) {
+                        json_data = $.parseJSON(data);
+						json_data_c = $.parseJSON(data);
+						fdate = json_data.data[0].date;
+						ldate = json_data.data[json_data.data.length - 1].date;
+						fdate = parseDate(fdate);
+						ldate = parseDate(ldate);
+						//ndays = ((ldate - fdate) / 1000 / 3600 / 24) + 1;
+						maxy = 0;
+						for ( var i = 0; i < json_data.data.length; i++) {
+							json_data.data[i].date = parseDate(json_data.data[i].date);
+							if (json_data.data[i].money > maxy)
+								maxy = json_data.data[i].money;
+							ndays++;
+						}
+						color.domain(["date","money"]);
+						transactions = color.domain().map(function(name) {
+							return {
+								name: name,
+								values: json_data.data.map(function(d) {
+											return {date: d.date, money: +d[name]};
+										})
+							};
+						});
+						
+						x.domain(d3.extent(json_data.data, function(d) { return d.date; }));
+						y.domain(d3.extent(json_data.data, function(d) { return d.money; }));
+						//y.domain([
+							//d3.min(transactions, function(c) { return d3.min(c.values, function(v) { return v.money; }); }),
+							//d3.max(transactions, function(c) { return d3.max(c.values, function(v) { return v.money; }); })
+						//]);
+						//y.domain([200000,700000]);
+						
+						svg.append("g")
+							.attr("class", "x axis")
+							.attr("transform", "translate(0," + height + ")")
+							.call(xAxis);
+
+						svg.append("g")
+							.attr("class", "y axis")
+							.call(yAxis)
+							.append("text")
+							.attr("transform", "rotate(-90)")
+							.attr("y", 6)
+							.attr("dy", ".71em")
+							.style("text-anchor", "end")
+							.text("Investment");
+
+							transaction = 	svg.selectAll(".transactions")
+											.data(transactions)
+											.enter().append("g")
+											.attr("class", "transactions");
+							
+							transaction.append("path")
+								.attr("class", "line")
+								.attr("d", function(d){return line(d.values);})
+								.style("stroke",function(d){return color(d.name);});
+							
+							transaction.append("text")
+								.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
+								.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
+								.attr("x", ".3em")
+								.attr("dy", ".35em")
+								.text(function(d) { return d.name; });
+					}		
+                });
+				
+				// Load and parse transactions
+				$.ajax({
+                    url: "transactions.txt",
+                    dataType: "text",
+                    success: function(data) {
+						var color;
+                        json_transactions = $.parseJSON(data);
+						for (var i = 0; i < json_transactions.transactions.length; i++) {
+							day = 0;
+							for (var j = 0; j < json_data_c.data.length; j++) {
+								day++;
+								if (json_data_c.data[j].date == json_transactions.transactions[i].date) {
+									yyy = json_data_c.data[j].money;
+									if (json_transactions.transactions[i].type == "w") color = "red";
+									else color = "green";
+									break;
+								}
+							}
+							
+							newx = day/ndays*width;
+							newy = height-yyy/maxy*height;
+							alert( day + " " + yyy);
+							alert( width + " " + height);
+							alert(ndays);
+							my_id = "r" + nc;
+							my_data[nc] = { id:my_id,x:newx,y:newy,s:1};
+							nc++;
+	
+							svg.append("rect")
+								.attr("height", 20)
+								.attr("width",20)
+								.attr("fill", color)
+								.attr("id",my_id)
+								.attr("onclick","display_money(this.id)")
+								.attr("x", newx)
+								.attr("y", newy);
+						}		
+                    }
+                });
+			});
+		}
+		
+		// resize
+		d3.select(window).on('resize', resize);
+		
+		function resize() {
+			// update width and height
+			width = document.documentElement.clientWidth - margin.left - margin.right;
+			height = document.documentElement.clientHeight - margin.top - margin.bottom;
+			no_of_ticks_x = width/100;
+			no_of_ticks_y = height/50;
+			ndays = 0;
+			
+			// Erase old chart
+			d3.select("svg").remove();
+
+			// Redraw chart			
+			load_chart();
+		}
+	</script>
+
+<body onload = "load_chart()">
+
+</body>
