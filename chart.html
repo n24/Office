@@ -12,7 +12,7 @@
 		.axis line {
 		  fill: none;
 		  stroke: #000;
-		  shape-rendering: crispEdges;
+		  shape-rendering: geometricPrecision;
 		}
 
 		.x.axis path {
@@ -30,19 +30,9 @@
 	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	
-	<script src ="set_data.js"></script>
-	
 	<script>
-		var margin 		= {top: 120, right: 120, bottom: 80, left: 100};
-		var page_width 	= document.documentElement.clientWidth;
-		var page_height = document.documentElement.clientHeight;
-		var width 		= page_width - margin.left - margin.right;
-		var height 		= page_height - margin.top - margin.bottom;
-		var svg;
-		var no_of_ticks_x = width  / 100;
-		var no_of_ticks_y = height / 50;
 		var rect_data = [];
-
+		var svg;
 		function display_money (p_id) {
 			var num = Number (p_id.match(/\d+/g));
 			var rect_id = "rect" + num;
@@ -75,28 +65,70 @@
 		}
 		
 		function load_chart () {
-			alert ("in load");
-			var parseDate;
+			var margin 			= {top: 120, right: 120, bottom: 80, left: 100};
+			var width 			= document.documentElement.clientWidth - margin.left - margin.right;
+			var height 			= document.documentElement.clientHeight - margin.top - margin.bottom;
+			var no_of_ticks_x 	= width  / 100;
+			var no_of_ticks_y 	= height / 50;
+		
+			var fundPerformance = [      
+				{
+				"FundValue": "00000000",
+				"FundDate": "2015-01-21"
+				},
+				{
+				"FundValue": "200000",
+				"FundDate": "2015-01-22"
+				},
+				{
+				"FundValue": "400000",
+				"FundDate": "2015-01-23"
+				},
+				{
+				"FundValue": "600000",
+				"FundDate": "2015-01-24"
+				},
+				{
+				"FundValue": "800000",
+				"FundDate": "2015-01-25"
+				}
+			];
+			var withdrawals = [
+			{
+				"InvestmentDate": "2015-01-22 14:52:55",
+				"InvestmentAmount": "100000.0000",
+				"InvestmentType": "One Time"
+			}
+			];
+			var deposits = [
+			{
+				"InvestmentDate": "2015-01-21 14:37:38",
+				"InvestmentAmount": "300000.0000",
+				"InvestmentType": "One Time"
+			},
+			{
+				"InvestmentDate": "2015-01-24 14:51:11",
+				"InvestmentAmount": "21000.0000",
+				"InvestmentType": "One Time"
+			}
+			];
 			var x, y;
 			var color;
 			var xAxis, yAxis;
 			var line;
-			var json_data_c = [];
-			var ndays;
 			var max_money;
 			var transactions, transaction;
-			var color_rect;
 			var day;
 			var money_on_date;
 			var rect_data_i = 0;
+			var rect_pos_x;
+			var rect_pos_y;
+			var rect_id;
 			
 			$(document).ready(function(){
-				parseDate = d3.time.format("%Y%m%d")
-							.parse;
-				alert(json_data[0].date);
 				x = d3.time.scale()
 					.range([0, width]);
-
+				
 				y = d3.scale.linear()
 					.range([height,0]);
 
@@ -113,40 +145,39 @@
 						.ticks(no_of_ticks_y);
 
 				line = 	d3.svg.line()
-						.interpolate("basis")
-						.x(function(d) { return x(d.date); })
-						.y(function(d) { return y(d.money); });
+						.interpolate("linear")
+						.x(function(d) { return x(d.FundDate); })
+						.y(function(d) { return y(d.FundValue); });
 					
 				svg = 	d3.select("body").append("svg")
 						.attr("width", width + margin.left + margin.right)
 						.attr("height", height + margin.top + margin.bottom)
 						.append("g")
 						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-				max_money = 0;
-				ndays = 0;
-				for ( var index = 0; index < json_data.length; index++) {
-					json_data_c[index] = {
-						"date":json_data[index].date,
-						"money":json_data[index].money
-					};
-					json_data[index].date = parseDate(json_data[index].date);
-					if (json_data[index].money > max_money)
-						max_money = json_data[index].money;
-					ndays++;
+				
+				max_money = 0.0;
+				var min_money = parseFloat(fundPerformance[0].FundValue);
+				
+				for ( var index = 0; index < fundPerformance.length; index++) {
+					fundPerformance[index].FundDate = d3.time.format("%Y-%m-%d").parse(fundPerformance[index].FundDate);
+					fundPerformance[index].FundValue = parseFloat(fundPerformance[index].FundValue);
+					if (fundPerformance[index].FundValue > max_money)
+						max_money = fundPerformance[index].FundValue;
+					if (fundPerformance[index].FundValue < min_money)
+						min_money = fundPerformance[index].FundValue;
 				}
-				color.domain(["date","money"]);
+				color.domain(["FundValue","FundDate"]);
 				transactions = color.domain().map(function(name) {
 									return {
 										name: name,
-										values: json_data.map(function(d) {
-											return {date: d.date, money: +d[name]};
+										values: fundPerformance.map(function(d) {
+											return {FundDate: d.FundDate, FundValue: +d[name]};
 										})
 									};
 								});
 						
-				x.domain(d3.extent(json_data, function(d) { return d.date; }));
-				y.domain(d3.extent(json_data, function(d) { return d.money; }));
+				x.domain(d3.extent(fundPerformance, function(d) { return d.FundDate; }));
+				y.domain([min_money - max_money * .10, max_money + max_money * .10]);
 						
 				svg.append("g")
 					.attr("class", "x axis")
@@ -175,37 +206,66 @@
 							
 				transaction.append("text")
 					.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-					.attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.money) + ")"; })
+					.attr("transform", function(d) { return "translate(" + x(d.value.FundDate) + "," + y(d.value.FundValue) + ")"; })
 					.attr("x", ".3em")
 					.attr("dy", ".35em")
 					.text(function(d) { return d.name; });		
 				
-				for (var i = 0; i < json_transactions.length; i++) {
+				for (var i = 0; i < withdrawals.length; i++) {
 					day = 0;
-					for (var j = 0; j < json_data_c.length; j++) {
+					for (var j = 0; j < fundPerformance.length; j++) {
 						day++;
-						if (json_data_c[j].date == json_transactions[i].date) {
-							money_on_date = json_data_c[j].money;
-							if (json_transactions[i].type == "w") color_rect = "red";
-							else color_rect = "green";
+						var date = withdrawals[i].InvestmentDate.split(' ');
+						date = d3.time.format("%Y-%m-%d").parse(date[0]);
+						if (date - fundPerformance[j].FundDate == 0) {
+							money_on_date = fundPerformance[j].FundValue;
+							console.log(money_on_date);
+							rect_pos_x = (day - 1) / (fundPerformance.length - 1) * width;
+							rect_pos_y = height - money_on_date / (max_money-min_money) * height;							
+							rect_id = "r" + rect_data_i;
+							rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
+	
+							svg.append("rect")
+								.attr("height", 20)
+								.attr("width",20)
+								.attr("fill", "red")
+								.attr("id",rect_id)
+								.attr("onclick","display_money(this.id)")
+								.attr("x", rect_pos_x)
+								.attr("y", rect_pos_y);
 							break;
 						}
 					}
-							
-					rect_pos_x = day / ndays * width;
-					rect_pos_y = height - money_on_date / max_money * height;
-					rect_id = "r" + rect_data_i;
-					rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
+				}	
+				
+				for (var i = 0; i < deposits.length; i++) 
+				{
+					day = 0;
+					for (var j = 0; j < fundPerformance.length; j++) 
+					{
+						day++;
+						var date = deposits[i].InvestmentDate.split(' ');
+						date = d3.time.format("%Y-%m-%d").parse(date[0]);
+						if (date  - fundPerformance[j].FundDate == 0) 
+						{
+							money_on_date = fundPerformance[j].FundValue;
+							rect_pos_x = (day - 1) / (fundPerformance.length - 1) * width;
+							rect_pos_y =  height - money_on_date / (max_money-min_money) * height;
+							rect_id = "r" + rect_data_i;
+							rect_data[rect_data_i++] = { id:rect_id, x:rect_pos_x, y:rect_pos_y, s:1 };
 	
-					svg.append("rect")
-						.attr("height", 20)
-						.attr("width",20)
-						.attr("fill", color_rect)
-						.attr("id",rect_id)
-						.attr("onclick","display_money(this.id)")
-						.attr("x", rect_pos_x)
-						.attr("y", rect_pos_y);
-					}		
+							svg.append("rect")
+								.attr("height", 20)
+								.attr("width",20)
+								.attr("fill", "green")
+								.attr("id",rect_id)
+								.attr("onclick","display_money(this.id)")
+								.attr("x", rect_pos_x)
+								.attr("y", rect_pos_y);
+							break;
+						}
+					}
+				}	
 			});
 		}
 		
@@ -214,14 +274,14 @@
 		
 		function resize() {
 			// update width and height
-			width 	= document.documentElement.clientWidth - margin.left - margin.right;
-			height 	= document.documentElement.clientHeight - margin.top - margin.bottom;
-			no_of_ticks_x = width / 100;
-			no_of_ticks_y = height / 50;
+			//width 	= document.documentElement.clientWidth - margin.left - margin.right;
+			//height 	= document.documentElement.clientHeight - margin.top - margin.bottom;
+			//no_of_ticks_x = width / 100;
+			//no_of_ticks_y = height / 50;
 			
 			// Erase old chart
 			d3.select("svg").remove();
-
+			
 			// Redraw chart			
 			load_chart();
 		}

@@ -31,6 +31,42 @@
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	
 	<script>
+	var fundPerformance = [      
+		{
+            "FundValue": "478546.9062",
+            "FundDate": "2015-01-21"
+        },
+        {
+            "FundValue": "328478.3438",
+            "FundDate": "2015-01-22"
+        },
+        {
+            "FundValue": "1050314.5000",
+            "FundDate": "2015-01-23"
+        },
+		{
+            "FundValue": "1050314.5000",
+            "FundDate": "2015-01-24"
+        },
+		{
+            "FundValue": "1050314.5000",
+            "FundDate": "2015-01-25"
+        }
+    ];
+	
+	var withdrawals;
+	var deposits = [
+    {
+      "InvestmentDate": "2015-01-23 14:37:38",
+      "InvestmentAmount": "300000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-24 14:51:11",
+      "InvestmentAmount": "21000.0000",
+      "InvestmentType": "One Time"
+    }
+  ];
 		var margin = {top: 120, right: 120, bottom: 80, left: 100};
 		var width = document.documentElement.clientWidth - margin.left - margin.right;
 		var height = document.documentElement.clientHeight - margin.top - margin.bottom;
@@ -50,8 +86,8 @@
 		var count;
 		var no_of_ticks_x = width/100;
 		var no_of_ticks_y = height/50;
-		var json_data;
-		var json_data_c;
+		var json_data = [];
+		var json_data_c = [];
 		var json_transactions;
 		var ndays = 0;
 		var transactions;
@@ -141,13 +177,12 @@
 						ldate = json_data.data[json_data.data.length - 1].date;
 						fdate = parseDate(fdate);
 						ldate = parseDate(ldate);
-						//ndays = ((ldate - fdate) / 1000 / 3600 / 24) + 1;
+						ndays = ((ldate - fdate) / 1000 / 3600 / 24);
 						maxy = 0;
 						for ( var i = 0; i < json_data.data.length; i++) {
 							json_data.data[i].date = parseDate(json_data.data[i].date);
 							if (json_data.data[i].money > maxy)
 								maxy = json_data.data[i].money;
-							ndays++;
 						}
 						color.domain(["date","money"]);
 						transactions = color.domain().map(function(name) {
@@ -161,11 +196,6 @@
 						
 						x.domain(d3.extent(json_data.data, function(d) { return d.date; }));
 						y.domain(d3.extent(json_data.data, function(d) { return d.money; }));
-						//y.domain([
-							//d3.min(transactions, function(c) { return d3.min(c.values, function(v) { return v.money; }); }),
-							//d3.max(transactions, function(c) { return d3.max(c.values, function(v) { return v.money; }); })
-						//]);
-						//y.domain([200000,700000]);
 						
 						svg.append("g")
 							.attr("class", "x axis")

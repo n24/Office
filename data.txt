@@ -1,28 +1,178 @@
-{"data":
-	[
-		{"date": "20150101", "money": 200000},
-		{"date": "20150102", "money": 200000},
-		{"date": "20150103", "money": 200000},
-		{"date": "20150104", "money": 200000},
-		{"date": "20150105", "money": 200000},
-		{"date": "20150106", "money": 200000},
-		{"date": "20150107", "money": 200000},
-		{"date": "20150108", "money": 200000},
-		{"date": "20150109", "money": 200000},
-		{"date": "20150110", "money": 200000},
-		{"date": "20150111", "money": 200000},
-		{"date": "20150112", "money": 200000},
-		{"date": "20150113", "money": 700000},
-		{"date": "20150114", "money": 700000},
-		{"date": "20150115", "money": 700000},
-		{"date": "20150116", "money": 700000},
-		{"date": "20150117", "money": 700000},
-		{"date": "20150118", "money": 700000},
-		{"date": "20150119", "money": 700000},
-		{"date": "20150120", "money": 200000},
-		{"date": "20150121", "money": 200000},
-		{"date": "20150122", "money": 200000},
-		{"date": "20150123", "money": 200000},
-		{"date": "20150124", "money": 200000}
-	]
-}	
+{
+  "FundPerformance": [
+    {
+      "FundValue": "16384.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "3"
+    },
+    {
+      "FundValue": "15872.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "3"
+    },
+    {
+      "FundValue": "31347.2012",
+      "FundDate": "2015-01-29",
+      "FundID": "3"
+    },
+    {
+      "FundValue": "0.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "4"
+    },
+    {
+      "FundValue": "0.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "4"
+    },
+    {
+      "FundValue": "9610.5596",
+      "FundDate": "2015-01-29",
+      "FundID": "4"
+    },
+    {
+      "FundValue": "198287.5469",
+      "FundDate": "2015-01-21",
+      "FundID": "5"
+    },
+    {
+      "FundValue": "74085.4609",
+      "FundDate": "2015-01-22",
+      "FundID": "5"
+    },
+    {
+      "FundValue": "228752.5000",
+      "FundDate": "2015-01-29",
+      "FundID": "5"
+    },
+    {
+      "FundValue": "32178.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "6"
+    },
+    {
+      "FundValue": "21855.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "6"
+    },
+    {
+      "FundValue": "70970.0234",
+      "FundDate": "2015-01-29",
+      "FundID": "6"
+    },
+    {
+      "FundValue": "15135.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "7"
+    },
+    {
+      "FundValue": "15330.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "7"
+    },
+    {
+      "FundValue": "49158.1992",
+      "FundDate": "2015-01-29",
+      "FundID": "7"
+    },
+    {
+      "FundValue": "13300.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "8"
+    },
+    {
+      "FundValue": "13293.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "8"
+    },
+    {
+      "FundValue": "43677.0000",
+      "FundDate": "2015-01-29",
+      "FundID": "8"
+    },
+    {
+      "FundValue": "173454.3438",
+      "FundDate": "2015-01-21",
+      "FundID": "9"
+    },
+    {
+      "FundValue": "159242.8906",
+      "FundDate": "2015-01-22",
+      "FundID": "9"
+    },
+    {
+      "FundValue": "524399.0625",
+      "FundDate": "2015-01-29",
+      "FundID": "9"
+    },
+    {
+      "FundValue": "29808.0000",
+      "FundDate": "2015-01-21",
+      "FundID": "10"
+    },
+    {
+      "FundValue": "28800.0000",
+      "FundDate": "2015-01-22",
+      "FundID": "10"
+    },
+    {
+      "FundValue": "92400.0000",
+      "FundDate": "2015-01-29",
+      "FundID": "10"
+    }
+  ],
+  "TotalInvestmentDeposit": [
+    {
+      "InvestmentDate": "2015-01-21 12:56:35",
+      "InvestmentAmount": "100000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-21 12:58:22",
+      "InvestmentAmount": "200000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-23 14:37:38",
+      "InvestmentAmount": "300000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 14:51:11",
+      "InvestmentAmount": "21000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 14:51:15",
+      "InvestmentAmount": "21000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 14:52:49",
+      "InvestmentAmount": "100000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 14:52:55",
+      "InvestmentAmount": "100000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 15:26:29",
+      "InvestmentAmount": "120000.0000",
+      "InvestmentType": "Recurring"
+    }
+  ],
+  "TotalInvestmentWithdrawals": [
+    {
+      "InvestmentDate": "2015-01-28 14:52:55",
+      "InvestmentAmount": "100000.0000",
+      "InvestmentType": "One Time"
+    },
+    {
+      "InvestmentDate": "2015-01-28 15:26:29",
+      "InvestmentAmount": "120000.0000",
+      "InvestmentType": "Recurring"
+    }
+  ]
+}
