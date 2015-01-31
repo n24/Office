@@ -118,7 +118,7 @@
 			var line;
 			var MaximumFund;
 			var MinimumFund;
-			var transactions, transaction;
+			var Investments, DrawInvestments;
 			var day;
 			var FundOnDate;
 			var rect_data_i = 0;
@@ -168,7 +168,7 @@
 						MinimumFund = FundPerformance[index].FundValue;
 				}
 				color.domain(["FundValue","FundDate"]);
-				transactions = color.domain().map(function(name) {
+				Investments = color.domain().map(function(name) {
 									return {
 										name: name,
 										values: FundPerformance.map(function(d) {
@@ -195,17 +195,17 @@
 					.style("text-anchor", "end")
 					.text("Investment");
 
-				transaction = 	svg.selectAll(".transactions")
-									.data(transactions)
+				DrawInvestments = 	svg.selectAll(".Investments")
+									.data(Investments)
 									.enter().append("g")
-									.attr("class", "transactions");
+									.attr("class", "Investments");
 							
-				transaction.append("path")
+				DrawInvestments.append("path")
 					.attr("class", "line")
 					.attr("d", function(d){return line(d.values);})
 					.style("stroke",function(d){return color(d.name);});
 							
-				transaction.append("text")
+				DrawInvestments.append("text")
 					.datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
 					.attr("transform", function(d) { return "translate(" + x(d.value.FundDate) + "," + y(d.value.FundValue) + ")"; })
 					.attr("x", ".3em")
