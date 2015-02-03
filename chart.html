@@ -9,18 +9,19 @@
 
 		.axis path,
 		.axis line {
-		  fill: none;
-		  stroke: #000;
-		  shape-rendering: geometricPrecision;
+			fill: none;
+			stroke: #d3d3d3;
+			shape-rendering: geometricPrecision;
 		}
 
-		.x.axis path {
-		  display: black;
+		.x.axis path,
+		.y.axis path {
+			stroke:black;
 		}
 
 		.line {
-		  fill: none;
-		  stroke-width: 1.5px;
+			fill:none;
+			stroke-width: 2px;
 		}
 	</style>
 	
@@ -118,69 +119,46 @@
 			}
 			
 		}
-		
+
 		function load_chart () 
 		{
+			
+	   d3.select("svg").remove();
 			var FundPerformance = [      
 				{
 				"FundDate": "2015-01-21",
 				"FundValue": "00000000",
 				"FundValue1": "100000",
 				"FundValue2": "100000",
-				"FundValue3": "100000",
-				"FundValue4": "100000",
-				"FundValue5": "100000",
-				"FundValue6": "100000",
-				"FundValue7": "100000",
-				"FundValue8": "100000"
+				"FundValue3": "100000"
 				},
 				{
 				"FundDate": "2015-01-22",
 				"FundValue": "200000",
 				"FundValue1": "200000",
 				"FundValue2": "100000",
-				"FundValue3": "100000",
-				"FundValue4": "100000",
-				"FundValue5": "100000",
-				"FundValue6": "100000",
-				"FundValue7": "100000",
-				"FundValue8": "100000"
+				"FundValue3": "100000"
 				},
 				{
 				"FundDate": "2015-01-23",
 				"FundValue": "400000",
 				"FundValue1": "300000",
 				"FundValue2": "100000",
-				"FundValue3": "100000",
-				"FundValue4": "100000",
-				"FundValue5": "100000",
-				"FundValue6": "100000",
-				"FundValue7": "100000",
-				"FundValue8": "100000"
+				"FundValue3": "100000"
 				},
 				{
 				"FundDate": "2015-01-24",
 				"FundValue": "600000",
 				"FundValue1": "400000",
 				"FundValue2": "100000",
-				"FundValue3": "100000",
-				"FundValue4": "100000",
-				"FundValue5": "100000",
-				"FundValue6": "100000",
-				"FundValue7": "100000",
-				"FundValue8": "100000"
+				"FundValue3": "100000"
 				},
 				{
 				"FundDate": "2015-01-25",
 				"FundValue": "800000",
 				"FundValue1": "500000",
 				"FundValue2": "300000",
-				"FundValue3": "200000",
-				"FundValue4": "700000",
-				"FundValue5": "900000",
-				"FundValue6": "1000000",
-				"FundValue7": "1900000",
-				"FundValue8": "800000"
+				"FundValue3": "200000"
 				}
 			];
 			var TotalInvestmentWithdrawals = [
@@ -202,13 +180,6 @@
 				"InvestmentType": "One Time"
 			}
 			];
-			var x, y;
-			var lineColor;
-			var xAxis, yAxis;
-			var line;
-			var maximumFund, minimumFund;
-			var investments, drawInvestments;
-			var fundOnDate;
 			var rect_data_i = 0;
 			var rect_pos_x;
 			var rect_pos_y;
@@ -218,67 +189,86 @@
 			var height = document.documentElement.clientHeight - margin.top - margin.bottom;
 			var xTicks 	= width  / 100;
 			var yTicks 	= height / 50;
+			var benchmark;
+			var sel = document.getElementById('select_list');
+			if (sel == null) benchmark = 0;
+			else
+			benchmark  = sel.selectedIndex + 1;
 			
 			$(document).ready(function(){
-				x = d3.time.scale()
-					.range([0, width]);
+				var x = d3.time.scale()
+							.range([0, width]);
 				
-				y = d3.scale.linear()
-					.range([height,0]);
+				var y = d3.scale.linear()
+							.range([height,0]);
 
-				lineColor = d3.scale.category20();
+				var lineColor = d3.scale.category10();
 				
-				xAxis = d3.svg.axis()
-						.scale(x)
-						.orient("bottom")
-						.ticks(xTicks);
+				var xAxis = d3.svg.axis()
+								.scale(x)
+								.orient("bottom")
+								.ticks(xTicks)
+								.tickSize(-height,0,0)
 
-				yAxis = d3.svg.axis()
-						.scale(y)
-						.orient("left")
-						.ticks(yTicks);
+				var yAxis = d3.svg.axis()
+								.scale(y)
+								.orient("left")
+								.ticks(yTicks)
+								.tickSize(-width,0,0);
 
-				line = 	d3.svg.line()
-						.interpolate("linear")
-						.x(function(d) { return x(d.FundDate); })
-						.y(function(d) { return y(d.FundValue); });
+				var line = 	d3.svg.line()
+								.interpolate("linear")
+								.x(function(d) { return x(d.FundDate); })
+								.y(function(d) { return y(d.FundValue); });
 					
 				svg = 	d3.select("body").append("svg")
-						.attr("width", width + margin.left + margin.right)
-						.attr("height", height + margin.top + margin.bottom)
-						.append("g")
-						.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+							.attr("width", width + margin.left + margin.right)
+							.attr("height", height + margin.top + margin.bottom)
+							.append("g")
+							.attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 				
 				var keyNames = [];
-				maximumFund = 0.0;
-				minimumFund = parseFloat(FundPerformance[0].FundValue);
+				var maximumFund = 0.0;
+				var minimumFund = parseFloat(FundPerformance[0].FundValue);
+				var keyValue = 0;
 				for (var key in FundPerformance[0])
 				{
-					keyNames[keyNames.length] = key;
+					if (keyValue == 0 || keyValue == 1 || keyValue == benchmark) 
+					{
+						keyNames[keyNames.length] = key;
+					}
+					
+					
 					// Calculate minimum and maximum fund and parse FundDate and FundValue
 					for ( var index = 0; index < FundPerformance.length; index++) 
 					{
+						
 						if ( key == "FundDate")
 							FundPerformance[index][key] = d3.time.format("%Y-%m-%d").parse(FundPerformance[index][key]);
 						else 
 						{
 							FundPerformance[index][key] = parseFloat(FundPerformance[index][key]);
-							if (FundPerformance[index][key] > maximumFund)
-								maximumFund = FundPerformance[index][key];
-							if (FundPerformance[index][key] < minimumFund)
-								minimumFund = FundPerformance[index][key];
+							if (keyValue == 0 || keyValue == 1 || keyValue == benchmark) 
+							{
+								if (FundPerformance[index][key] > maximumFund)
+									maximumFund = FundPerformance[index][key];
+								else if (FundPerformance[index][key] < minimumFund)
+									minimumFund = FundPerformance[index][key];
+							}
 						}
 					}
+					keyValue++;
 				}
-				lineColor.domain(keyNames);
-				investments = lineColor.domain().map(function(FundDate) {
-									return {
-										FundDate: FundDate,
-										values: FundPerformance.map(function(d) {
-											return {FundDate: d.FundDate, FundValue: +d[FundDate]};
-										})
-									};
-								});
+				lineColor.domain(keyNames).range(["orange","green"]);
+				
+				var investments = 	lineColor.domain().map(function(FundDate) {
+										return {
+											FundDate: FundDate,
+											values: FundPerformance.map(function(d) {
+												return {FundDate: d.FundDate, FundValue: +d[FundDate]};
+											})
+										};
+									});
 			
 				x.domain(d3.extent(FundPerformance, function(d) { return d.FundDate; }));
 				y.domain([minimumFund - maximumFund * .10, maximumFund + maximumFund * .10]);
@@ -298,10 +288,10 @@
 					.style("text-anchor", "end")
 					.text("Investment");
 
-				drawInvestments = 	svg.selectAll(".Investment")
-									.data(investments)
-									.enter().append("g")
-									.attr("class", "Investment");
+				var drawInvestments = 	svg.selectAll(".Investment")
+											.data(investments)
+											.enter().append("g")
+											.attr("class", "Investment");
 							
 				drawInvestments.append("path")
 					.attr("class", "line")
@@ -316,21 +306,21 @@
 					.text(function(d) { return d.FundDate; });		
 				
 				// Draw "red" rectangular boxes for TotalInvestmentWithdrawals
-				for (var i = 0; i < TotalInvestmentWithdrawals.length; i++) 
+				for (var index = 0; index < TotalInvestmentWithdrawals.length; index++) 
 				{
-					for (var FundPerformanceDay = 0; FundPerformanceDay < FundPerformance.length; FundPerformanceDay++) 
+					for (var fundPerformanceDay = 0; fundPerformanceDay < FundPerformance.length; fundPerformanceDay++) 
 					{
 						// Split the date and parse it
-						var date = TotalInvestmentWithdrawals[i].InvestmentDate.split(' ');
+						var date = TotalInvestmentWithdrawals[index].InvestmentDate.split(' ');
 						date = d3.time.format("%Y-%m-%d").parse(date[0]);
 						
-						if (date - FundPerformance[FundPerformanceDay].FundDate == 0) 
+						if (date - FundPerformance[fundPerformanceDay].FundDate == 0) 
 						{
 							// Calculate the fund value on the date of withdrawal
-							fundOnDate = FundPerformance[FundPerformanceDay].FundValue;
+							fundOnDate = FundPerformance[fundPerformanceDay].FundValue;
 							
 							// Find out the x and y points to draw rectangle
-							rect_pos_x = FundPerformanceDay / (FundPerformance.length - 1) * width;
+							rect_pos_x = fundPerformanceDay / (FundPerformance.length - 1) * width;
 							rect_pos_y = height - (fundOnDate+maximumFund*.10) / ((maximumFund+maximumFund*.10)-(minimumFund-maximumFund*.10)) * height;							
 							
 							// Give unique id for each rectangle drawn
@@ -340,9 +330,9 @@
 								x:rect_pos_x, 
 								y:rect_pos_y, 
 								s:1,
-								d:TotalInvestmentWithdrawals[i].InvestmentDate,
-								v:TotalInvestmentWithdrawals[i].InvestmentAmount,
-								t:TotalInvestmentWithdrawals[i].InvestmentType,
+								d:TotalInvestmentWithdrawals[index].InvestmentDate,
+								v:TotalInvestmentWithdrawals[index].InvestmentAmount,
+								t:TotalInvestmentWithdrawals[index].InvestmentType,
 								type:'w'
 							};
 							// Draw the rectangle
@@ -368,21 +358,21 @@
 				}	
 				
 				// Draw "green" rectangular boxes for TotalInvestmentDeposit
-				for (var i = 0; i < TotalInvestmentDeposit.length; i++) 
+				for (var index = 0; index < TotalInvestmentDeposit.length; index++) 
 				{
-					for (var FundPerformanceDay = 0; FundPerformanceDay < FundPerformance.length; FundPerformanceDay++) 
+					for (var fundPerformanceDay = 0; fundPerformanceDay < FundPerformance.length; fundPerformanceDay++) 
 					{
 						// Split the date and parse it
-						var date = TotalInvestmentDeposit[i].InvestmentDate.split(' ');
+						var date = TotalInvestmentDeposit[index].InvestmentDate.split(' ');
 						date = d3.time.format("%Y-%m-%d").parse(date[0]);
 						
-						if (date  - FundPerformance[FundPerformanceDay].FundDate == 0) 
+						if (date  - FundPerformance[fundPerformanceDay].FundDate == 0) 
 						{
 							// Calculate the fund value on the date of investment
-							fundOnDate = FundPerformance[FundPerformanceDay].FundValue;
+							fundOnDate = FundPerformance[fundPerformanceDay].FundValue;
 							
 							// Find out the x and y points to draw rectangle
-							rect_pos_x = FundPerformanceDay / (FundPerformance.length - 1) * width;
+							rect_pos_x = fundPerformanceDay / (FundPerformance.length - 1) * width;
 							rect_pos_y =  height - (fundOnDate+maximumFund*.10) / ((maximumFund+maximumFund*.10)-(minimumFund-maximumFund*.10)) * height;
 							
 							// Give unique id for each rectangle drawn
@@ -392,9 +382,9 @@
 								x:rect_pos_x, 
 								y:rect_pos_y, 
 								s:1,
-								d:TotalInvestmentDeposit[i].InvestmentDate,
-								v:TotalInvestmentDeposit[i].InvestmentAmount,
-								t:TotalInvestmentDeposit[i].InvestmentType,
+								d:TotalInvestmentDeposit[index].InvestmentDate,
+								v:TotalInvestmentDeposit[index].InvestmentAmount,
+								t:TotalInvestmentDeposit[index].InvestmentType,
 								type:'d'
 							};
 							
@@ -426,14 +416,17 @@
 		d3.select(window).on('resize', resize);
 		
 		function resize() 
-		{
-			// Erase old chart
-			d3.select("svg").remove();
-			
+		{	
 			// Redraw chart			
 			load_chart();
 		}
 	</script>
 
 <body onload = "load_chart()">
+<!-- <div id = "graph1">
+	<p> Graph1 </p>
+</div>
+<div id = "graph2">
+	<p> Graph2 </p>
+</div> -->
 </body>
